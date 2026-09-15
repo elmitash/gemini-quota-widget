@@ -1,0 +1,24 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor & IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary & backup files
+*.tmp
+*.bak
+*~
+
+# Operating system artifacts
+.DS_Store
+Thumbs.db

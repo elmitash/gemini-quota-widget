@@ -1,0 +1,7 @@
+{
+  "always_on_top": true,
+  "window_x": 120,
+  "window_y": 80,
+  "poll_interval_seconds": 15,
+  "target_group": "Gemini Models"
+}
