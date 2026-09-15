@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect x="24" y="24" width="464" height="464" rx="110" fill="url(#bgGrad)" stroke="#38bdf8" stroke-width="4" stroke-opacity="0.3"/>
+
+  <!-- Gauge Arc Background Track -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#334155" stroke-width="20" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Gauge Arc (Progress) -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#arcGrad)" stroke-width="20" stroke-linecap="round"
+          stroke-dasharray="1005" stroke-dashoffset="350"
+          transform="rotate(-135 256 256)"/>
+
+  <!-- Centered Glowing Sparkle / Star (Gemini / Antigravity ✦) -->
+  <path d="M 256 120
+           C 256 195, 275 214, 350 256
+           C 275 298, 256 317, 256 392
+           C 256 317, 237 298, 162 256
+           C 237 214, 256 195, 256 120 Z"
+        fill="url(#starGrad)"
+        filter="url(#glow)"/>
+
+  <!-- Small Orbiting Accent Dots -->
+  <circle cx="369" cy="143" r="14" fill="#38bdf8" filter="url(#glow)"/>
+  <circle cx="143" cy="369" r="10" fill="#10b981" filter="url(#glow)"/>
+</svg>

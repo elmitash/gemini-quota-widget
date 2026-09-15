@@ -85,6 +85,12 @@ chmod +x main.py
 ./main.py
 ```
 
+### 4. Register as Desktop App (KDE / KRunner / Kickoff)
+Register the widget with its custom vector icon in your system application menu and KRunner (`Alt` + `Space`):
+```bash
+./install-desktop.sh
+```
+
 ---
 
 ## ⚙️ Configuration (`config.json`)

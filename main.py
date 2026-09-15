@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 from PyQt6.QtCore import QPoint, Qt, QTimer
-from PyQt6.QtGui import QAction, QColor, QCursor
+from PyQt6.QtGui import QAction, QColor, QCursor, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QGraphicsDropShadowEffect,
@@ -459,9 +459,17 @@ class GeminiQuotaWidget(QWidget):
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AntigravityOfficialQuotaTracker")
+    app.setDesktopFileName("gemini-quota-widget")
+
+    icon_path = Path(__file__).parent / "resources" / "icon.svg"
+    app_icon = QIcon(str(icon_path)) if icon_path.exists() else None
+    if app_icon:
+        app.setWindowIcon(app_icon)
 
     tracker = QuotaTracker(Path(__file__).parent / "config.json")
     widget = GeminiQuotaWidget(tracker)
+    if app_icon:
+        widget.setWindowIcon(app_icon)
     widget.show()
 
     sys.exit(app.exec())
