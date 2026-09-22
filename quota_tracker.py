@@ -61,7 +61,7 @@ class QuotaTracker:
         self.is_fetching = False
 
         self.load_config()
-        self.fetch_quota_summary()
+        self.fetch_quota_summary(force_refresh=True)
 
     def load_config(self) -> None:
         if not self.config_path.exists():
@@ -140,27 +140,31 @@ class QuotaTracker:
             pass
         return False
 
-    def fetch_quota_summary(self) -> dict | None:
-        """language_server RPC(RetrieveUserQuotaSummary)를 호출하여 주간/5시간 쿼터 데이터를 수신합니다."""
+    def fetch_quota_summary(self, force_refresh: bool = True) -> dict | None:
+        """language_server RPC(RetrieveUserQuotaSummary)를 호출하여 주간/5시간 쿼터 데이터를 수신합니다.
+        force_refresh=True인 경우 구글 클라우드 서버로부터 최신 실시간 사용량을 즉시 강제 갱신합니다.
+        """
         port, token = self.discover_connection()
         if not port or not token:
             return self.last_quota_summary
 
         try:
             url = f"http://127.0.0.1:{port}/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary"
+            body = {"forceRefresh": True} if force_refresh else {}
             req = urllib.request.Request(
                 url,
-                data=b"{}",
+                data=json.dumps(body).encode("utf-8"),
                 headers={
                     "Content-Type": "application/json",
                     "X-Codeium-Csrf-Token": token,
                     "Connect-Protocol-Version": "1",
                 },
             )
-            with urllib.request.urlopen(req, timeout=2.5) as resp:
+            with urllib.request.urlopen(req, timeout=3.0) as resp:
                 data = json.loads(resp.read().decode())
                 if "response" in data and "groups" in data["response"]:
                     self.last_quota_summary = data["response"]
+                    self.last_fetch_time = datetime.now()
 
             # 계정 티어 및 이메일 동적 확인 (선택적)
             try:
@@ -192,7 +196,7 @@ class QuotaTracker:
 
         return self.last_quota_summary
 
-    def trigger_rpc_async(self, callback=None) -> None:
+    def trigger_rpc_async(self, force_refresh: bool = True, callback=None) -> None:
         """백그라운드 비동기 RPC 호출."""
         if self.is_fetching:
             return
@@ -200,7 +204,7 @@ class QuotaTracker:
         def _worker():
             self.is_fetching = True
             try:
-                self.fetch_quota_summary()
+                self.fetch_quota_summary(force_refresh=force_refresh)
             finally:
                 self.is_fetching = False
                 if callback:

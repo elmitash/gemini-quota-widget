@@ -44,7 +44,10 @@ class GeminiQuotaWidget(QWidget):
         self.update_display()
         self.adjustSize()
 
-        # 1초 주기로 카운트다운 갱신
+        # 앱 시작 즉시 최신 실시간 쿼터 강제 갱신 트리거
+        QTimer.singleShot(100, lambda: self.trigger_sync(force_refresh=True))
+
+        # 1초 주기로 카운트다운 갱신 및 미연결 시 빠른 재시도
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self.on_timer_tick)
@@ -305,6 +308,21 @@ class GeminiQuotaWidget(QWidget):
         """구글 Antigravity 공식 UI와 100% 동일한 쿼터 데이터를 화면에 갱신합니다."""
         summary = self.tracker.get_quota_summary_data()
 
+        # 아직 Language Server에 연결되지 않은 초기 상태
+        if not summary.is_live_rpc:
+            self.badge_group.setText("Connecting...")
+            self.lbl_weekly_pct.setText("Syncing...")
+            self.lbl_weekly_detail.setText("Waiting for Antigravity...")
+            self.lbl_weekly_reset.setText("--")
+            self.bar_weekly.setValue(0)
+
+            self.lbl_short_pct.setText("Syncing...")
+            self.lbl_short_detail.setText("Waiting for Antigravity...")
+            self.lbl_short_reset.setText("--")
+            self.bar_short.setValue(0)
+            self.btn_sync.setEnabled(not self.tracker.is_fetching)
+            return
+
         # 1. 헤더 뱃지
         s = summary.short_term
         self.badge_group.setText(summary.group_name.replace(" Models", ""))
@@ -357,18 +375,32 @@ class GeminiQuotaWidget(QWidget):
             }}
         """)
 
-    def trigger_sync(self) -> None:
-        self.tracker.trigger_rpc_async(callback=self.on_sync_finished)
+    def trigger_sync(self, force_refresh: bool = True) -> None:
+        self.tracker.trigger_rpc_async(force_refresh=force_refresh, callback=self.on_sync_finished)
         self.update_display()
 
     def on_sync_finished(self) -> None:
         QTimer.singleShot(0, self.update_display)
+        QTimer.singleShot(50, self.adjustSize)
 
     def on_timer_tick(self) -> None:
+        # 1. 초기 미연결 시 2초마다 빠른 연결 시도
+        if not self.tracker.last_quota_summary:
+            if not self.tracker.is_fetching:
+                self.trigger_sync(force_refresh=True)
+            self.update_display()
+            return
+
+        # 2. 리셋 카운트다운 만료(00:00:00) 시 실시간 자동 강제 갱신
+        summary = self.tracker.get_quota_summary_data()
+        if summary.short_term.remaining_time_str == "00:00:00" and not self.tracker.is_fetching:
+            self.trigger_sync(force_refresh=True)
+            return
+
         self.update_display()
 
     def on_sync_timer_tick(self) -> None:
-        self.trigger_sync()
+        self.trigger_sync(force_refresh=True)
 
     def toggle_always_on_top(self) -> None:
         is_pinned = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
